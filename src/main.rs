@@ -1,3 +1,8 @@
+extern crate image;
+
+mod test_image;
+
 fn main() {
-    println!("Hello, world!");
+  test_image::create_test_image().save("out.png");
+  println!("saved image");
 }
