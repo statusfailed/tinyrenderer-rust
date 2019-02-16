@@ -1,0 +1,7 @@
+[package]
+name = "tinyrenderer-rust"
+version = "0.1.0"
+authors = ["status failed <sf@statusfailed.com>"]
+
+[dependencies]
+image = "0.21"
