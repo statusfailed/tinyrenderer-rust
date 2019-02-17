@@ -10,8 +10,14 @@ mod wavefront;
 
 //use image::{ImageBuffer, Rgb};
 
-// Passing mutable references around: https://stackoverflow.com/questions/23574416/
+mod chapters;
+
 fn main() {
+  chapters::chapter1();
+  println!("Done!")
+}
+
+fn old_main() {
   let mut image = test_image::create_blank_image();
   let white = image::Rgb([255, 255, 255]);
   bresenham::bresenham(10, 10, 20, 500, &mut image, white);

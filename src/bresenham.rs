@@ -6,6 +6,7 @@ use image::{ImageBuffer, Pixel};
 // Except instead of a branch, we just use multiply by steep cast to int.
 //
 // Also it's probably really buggy because I didn't think about much very hard...
+// Passing mutable references around: https://stackoverflow.com/questions/23574416/
 pub fn bresenham<P, Container>(
   x0: i32,
   y0: i32,
