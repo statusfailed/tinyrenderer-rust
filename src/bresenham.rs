@@ -25,7 +25,7 @@ pub fn bresenham<P, Container>(
     };
 
   let (x0, y0, x1, y1) =
-    if (x0 > x1) {
+    if x0 > x1 {
       (x1, y1, x0, y0)
     } else {
       (x0, y0, x1, y1)
@@ -48,7 +48,7 @@ pub fn bresenham<P, Container>(
     buf.put_pixel(cx as u32, cy as u32, val); // 
 
     error2 += derror2;
-    if(error2 > dx) {
+    if error2 > dx {
       y += if y1 > y0 { 1 } else { -1 };
       error2 -= dx*2;
     }

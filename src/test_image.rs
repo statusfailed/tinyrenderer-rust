@@ -1,4 +1,4 @@
-use image::{ImageBuffer, Rgb, Rgba};
+use image::{ImageBuffer, Rgb};
 
 const DX: usize = 512;
 const DY: usize = 512;
