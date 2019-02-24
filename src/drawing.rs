@@ -1,5 +1,56 @@
+use nalgebra::{Vector3, Vector2};
+
 use std::ops::{Deref, DerefMut};
 use image::{ImageBuffer, Pixel};
+
+pub type Triangle = [Vector2<f64>; 3];
+
+// this is nice:
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates
+pub fn barycentric(p: Vector2<f64>, triangle: Triangle) -> Vector3<f64> {
+  /* Vec3f u = cross(
+         Vec3f(pts[2].x-pts[0].x, pts[1].x-pts[0].x, pts[0].x-p.x)
+       , Vec3f(pts[2].y-pts[0].y, pts[1].y-pts[0].y, pts[0].y-P.y)
+     );
+   */
+  let ab = triangle[2] - triangle[0];
+  let ac = triangle[1] - triangle[0];
+  let pa = triangle[0] - p;
+
+  // I don't understand what's going on
+  let c = Vector3::new(ab.x, ac.x, pa.x);
+  let d = Vector3::new(ab.y, ac.y, pa.y);
+
+  let u = c.cross(&d);
+
+  if u.z.abs() < 1.0 {
+    return Vector3::new(-1.0, 1.0, 1.0);
+  }
+
+  return Vector3::new(1.0 - (u.x+u.y)/u.z, u.y/u.z, u.x/u.z); 
+}
+
+pub fn triangle<P, Container>(
+  triangle: Triangle, 
+  buf: &mut ImageBuffer<P, Container>,
+  val: P)
+  where
+    P: Pixel + 'static,
+    Container: Deref<Target = [P::Subpixel]> + DerefMut,
+{
+  // TODO: calculate bounding box, don't iterate through whole image!
+
+  for x in 0..(buf.width() - 1) {
+    for y in 0..(buf.height() - 1) {
+      let p = Vector2::new(x as f64, y as f64);
+      let bc_screen = barycentric(p, triangle);
+      if (bc_screen.x < 0.0 || bc_screen.y < 0.0 || bc_screen.z < 0.0) {
+          continue
+      }; 
+      buf.put_pixel(p.x as u32, p.y as u32, val); 
+    }
+  }
+}
 
 // Version of bresenham's from here: https://github.com/ssloy/tinyrenderer/wiki/Lesson-1:-Bresenham%E2%80%99s-Line-Drawing-Algorithm
 // And this optimization: https://github.com/ssloy/tinyrenderer/issues/28

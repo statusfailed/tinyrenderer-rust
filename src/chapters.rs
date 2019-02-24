@@ -1,11 +1,11 @@
 use super::wavefront;
-use super::bresenham::{bresenham};
+use super::drawing::{bresenham, triangle, Triangle};
 use super::test_image;
 
 use std::fs::File;
 
 use image;
-use nalgebra::{Vector3};
+use nalgebra::{Vector3, Vector2};
 
 pub fn chapter1() {
   let file = File::open("data/chapter_1_head.obj").unwrap(); // TODO: nasty unwrap
@@ -51,6 +51,22 @@ pub fn chapter1() {
 
   //bresenham(0, 0, 250, 250, &mut image, white);
   bresenham(223, 226, 223, 226, &mut image, white);
-  image.save("out.png");
-  println!("saved to ./out.png");
+  let filename = "images/chapter1.png";
+  image.save(filename);
+  println!("saved to {}", filename);
+}
+
+pub fn chapter2() {
+	// 500x500
+  let white = image::Rgb([255, 255, 255]);
+  let mut image = test_image::create_blank_image();
+	let triangle_points: Triangle = [
+		Vector2::new(10., 10.),
+    Vector2::new(100., 30.),
+    Vector2::new(190., 160.),
+  ];
+  triangle(triangle_points, &mut image, white);
+  let filename = "images/chapter2.png";
+  image::imageops::flip_vertical(&mut image).save(filename);
+  println!("saved to {}", filename);
 }
