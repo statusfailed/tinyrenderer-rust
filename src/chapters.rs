@@ -9,8 +9,7 @@ use nalgebra::{Vector3, Vector2};
 
 pub fn chapter1() {
   let file = File::open("data/chapter_1_head.obj").unwrap(); // TODO: nasty unwrap
-  let mut model = wavefront::Model::from_file(file);
-
+  let model = wavefront::Model::from_file(file);
   let nvertices = model.vertices.len();
   let nfaces = model.faces.len();
 
@@ -60,6 +59,8 @@ pub fn chapter2() {
 	// 500x500
   let white = image::Rgb([255, 255, 255]);
   let mut image = test_image::create_blank_image();
+
+  // Draw a single triangle to test
 	let triangle_points: Triangle = [
 		Vector2::new(10., 10.),
     Vector2::new(100., 30.),
@@ -67,6 +68,55 @@ pub fn chapter2() {
   ];
   triangle(triangle_points, &mut image, white);
   let filename = "images/chapter2.png";
+  image::imageops::flip_vertical(&mut image).save(filename);
+  println!("saved to {}", filename);
+
+  ///////////////////////////////
+  // Draw all faces in the model
+
+  image = test_image::create_blank_image();
+  let (width, height) = image.dimensions();
+  let file = File::open("data/chapter_1_head.obj").unwrap(); // TODO unwrap
+  let model = wavefront::Model::from_file(file);
+
+  let mut screen_coords: Triangle =
+    [ Vector2::new(0., 0.)
+    , Vector2::new(0., 0.)
+    , Vector2::new(0., 0.)
+    ];
+
+  let mut world_coords: [Vector3<f64>; 3] =
+    [ Vector3::new(0., 0., 0.)
+    , Vector3::new(0., 0., 0.)
+    , Vector3::new(0., 0., 0.)
+    ];
+
+  let light_dir = Vector3::new(0., 0., -1.);
+
+  // Now draw all the faces in the model.
+  for face in model.faces {
+    for (i, idx) in face.iter().enumerate() {
+      // TODO: again indexes fixed!!
+      let world_coord: Vector3<f64> = model.vertices[*idx as usize - 1];
+      world_coords[i] = world_coord;
+      screen_coords[i] = Vector2::new(
+        (world_coord.x+1.) * width  as f64 / 2. ,
+        (world_coord.y+1.) * height as f64 / 2. )
+    }
+
+    let n: Vector3<f64> =
+      ( world_coords[2] - world_coords[0] ).cross(
+        &(world_coords[1] - world_coords[0])
+      ).normalize();
+
+    let intensity: f64 = n.dot(&light_dir);
+    let rgbVal = (255 as f64 * intensity) as u8;
+    let color = image::Rgb([rgbVal, rgbVal, rgbVal]);
+    if intensity > 0. {
+      triangle(screen_coords, &mut image, color);
+    }
+	}
+  let filename = "images/chapter2-2.png";
   image::imageops::flip_vertical(&mut image).save(filename);
   println!("saved to {}", filename);
 }

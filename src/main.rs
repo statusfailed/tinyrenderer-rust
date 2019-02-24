@@ -1,9 +1,6 @@
 extern crate image;
 extern crate nalgebra;
 
-use std::fs::File;
-use std::path::Path;
-
 mod test_image;
 mod wavefront;
 mod drawing;
@@ -19,6 +16,9 @@ fn main() {
 }
 
 /*
+use std::fs::File;
+use std::path::Path;
+
 fn old_main() {
   let mut image = test_image::create_blank_image();
   let white = image::Rgb([255, 255, 255]);

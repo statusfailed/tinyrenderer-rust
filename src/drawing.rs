@@ -44,7 +44,7 @@ pub fn triangle<P, Container>(
     for y in 0..(buf.height() - 1) {
       let p = Vector2::new(x as f64, y as f64);
       let bc_screen = barycentric(p, triangle);
-      if (bc_screen.x < 0.0 || bc_screen.y < 0.0 || bc_screen.z < 0.0) {
+      if bc_screen.x < 0. || bc_screen.y < 0. || bc_screen.z < 0. {
           continue
       }; 
       buf.put_pixel(p.x as u32, p.y as u32, val); 
