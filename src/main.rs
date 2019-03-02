@@ -10,8 +10,11 @@ mod drawing;
 mod chapters;
 
 fn main() {
-  //chapters::chapter1();
-  chapters::chapter2();
+  if false {
+    chapters::chapter1();
+  }
+
+  chapters::chapter3();
   println!("Done!")
 }
 

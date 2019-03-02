@@ -51,25 +51,16 @@ pub fn chapter1() {
   //bresenham(0, 0, 250, 250, &mut image, white);
   bresenham(223, 226, 223, 226, &mut image, white);
   let filename = "images/chapter1.png";
-  image.save(filename);
+  image.save(filename).unwrap();
   println!("saved to {}", filename);
 }
 
-pub fn chapter2() {
-	// 500x500
-  let white = image::Rgb([255, 255, 255]);
-  let mut image = test_image::create_blank_image();
+// NOTE: removed chapter2 because we changed the interface to triangle().
 
-  // Draw a single triangle to test
-	let triangle_points: Triangle = [
-		Vector2::new(10., 10.),
-    Vector2::new(100., 30.),
-    Vector2::new(190., 160.),
-  ];
-  triangle(triangle_points, &mut image, white);
-  let filename = "images/chapter2.png";
-  image::imageops::flip_vertical(&mut image).save(filename);
-  println!("saved to {}", filename);
+pub fn chapter3() {
+	// 500x500
+  let mut image = test_image::create_blank_image();
+  let mut zbuf = vec![0.0; (image.height()*image.width()) as usize];
 
   ///////////////////////////////
   // Draw all faces in the model
@@ -80,9 +71,9 @@ pub fn chapter2() {
   let model = wavefront::Model::from_file(file);
 
   let mut screen_coords: Triangle =
-    [ Vector2::new(0., 0.)
-    , Vector2::new(0., 0.)
-    , Vector2::new(0., 0.)
+    [ Vector3::new(0., 0., 0.)
+    , Vector3::new(0., 0., 0.)
+    , Vector3::new(0., 0., 0.)
     ];
 
   let mut world_coords: [Vector3<f64>; 3] =
@@ -99,9 +90,10 @@ pub fn chapter2() {
       // TODO: again indexes fixed!!
       let world_coord: Vector3<f64> = model.vertices[*idx as usize - 1];
       world_coords[i] = world_coord;
-      screen_coords[i] = Vector2::new(
+      screen_coords[i] = Vector3::new(
         (world_coord.x+1.) * width  as f64 / 2. ,
-        (world_coord.y+1.) * height as f64 / 2. )
+        (world_coord.y+1.) * height as f64 / 2. ,
+        world_coord.z) // keep z-coord as is for depth buffering
     }
 
     let n: Vector3<f64> =
@@ -110,13 +102,13 @@ pub fn chapter2() {
       ).normalize();
 
     let intensity: f64 = n.dot(&light_dir);
-    let rgbVal = (255 as f64 * intensity) as u8;
-    let color = image::Rgb([rgbVal, rgbVal, rgbVal]);
+    let rgb_val = (255 as f64 * intensity) as u8;
+    let color = image::Rgb([rgb_val, rgb_val, rgb_val]);
     if intensity > 0. {
-      triangle(screen_coords, &mut image, color);
+      triangle(screen_coords, &mut image, &mut zbuf, color);
     }
 	}
-  let filename = "images/chapter2-2.png";
-  image::imageops::flip_vertical(&mut image).save(filename);
+  let filename = "images/chapter3.png";
+  image::imageops::flip_vertical(&mut image).save(filename).unwrap();
   println!("saved to {}", filename);
 }

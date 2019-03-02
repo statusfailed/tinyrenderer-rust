@@ -3,11 +3,11 @@ use nalgebra::{Vector3, Vector2};
 use std::ops::{Deref, DerefMut};
 use image::{ImageBuffer, Pixel};
 
-pub type Triangle = [Vector2<f64>; 3];
+pub type Triangle = [Vector3<f64>; 3];
 
 // this is nice:
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates
-pub fn barycentric(p: Vector2<f64>, triangle: Triangle) -> Vector3<f64> {
+pub fn barycentric(p: Vector3<f64>, triangle: Triangle) -> Vector3<f64> {
   /* Vec3f u = cross(
          Vec3f(pts[2].x-pts[0].x, pts[1].x-pts[0].x, pts[0].x-p.x)
        , Vec3f(pts[2].y-pts[0].y, pts[1].y-pts[0].y, pts[0].y-P.y)
@@ -27,27 +27,44 @@ pub fn barycentric(p: Vector2<f64>, triangle: Triangle) -> Vector3<f64> {
     return Vector3::new(-1.0, 1.0, 1.0);
   }
 
-  return Vector3::new(1.0 - (u.x+u.y)/u.z, u.y/u.z, u.x/u.z); 
+  return Vector3::new(1.0 - (u.x+u.y)/u.z, u.y/u.z, u.x/u.z);
 }
 
 pub fn triangle<P, Container>(
-  triangle: Triangle, 
+  triangle: Triangle,
   buf: &mut ImageBuffer<P, Container>,
+  zbuffer: &mut Vec<f64>, // NOTE: must be width*height elements long, or program will crash :-)
   val: P)
   where
     P: Pixel + 'static,
     Container: Deref<Target = [P::Subpixel]> + DerefMut,
 {
+  let width: u32 = buf.width();
+  let height: u32 = buf.height();
+  assert_eq!(zbuffer.len(), (width * height) as usize);
+
   // TODO: calculate bounding box, don't iterate through whole image!
 
   for x in 0..(buf.width() - 1) {
     for y in 0..(buf.height() - 1) {
-      let p = Vector2::new(x as f64, y as f64);
-      let bc_screen = barycentric(p, triangle);
-      if bc_screen.x < 0. || bc_screen.y < 0. || bc_screen.z < 0. {
-          continue
-      }; 
-      buf.put_pixel(p.x as u32, p.y as u32, val); 
+      let p = Vector3::new(x as f64, y as f64, 0 as f64);
+      let bc_screen: Vector3<f64> = barycentric(p, triangle);
+
+      // if pixel is outside triangle, skip this pixel.
+      if bc_screen.x < 0. || bc_screen.y < 0. || bc_screen.z < 0. { continue };
+
+      // update z-coordinate
+      let mut z: f64 = 0.0;
+      for i in 0..2 {
+        z += triangle[i].z * bc_screen[i];
+      }
+
+      // draw + update zbuffer if pixel is closer to camera
+      let idx = (x + y * width) as usize;
+      if zbuffer[idx] < z {
+        zbuffer[idx] = z;
+        buf.put_pixel(p.x as u32, p.y as u32, val);
+      }
     }
   }
 }
@@ -97,7 +114,7 @@ pub fn bresenham<P, Container>(
     // if(steep) { put_pixel(y, x) } else { put_pixel(x, y) }
     let cx = steep_y * x + steep_x * y;
     let cy = steep_x * x + steep_y * y;
-    buf.put_pixel(cx as u32, cy as u32, val); // 
+    buf.put_pixel(cx as u32, cy as u32, val); //
 
     error2 += derror2;
     if error2 > dx {
