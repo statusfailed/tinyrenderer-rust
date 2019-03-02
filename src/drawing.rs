@@ -55,7 +55,7 @@ pub fn triangle<P, Container>(
 
       // update z-coordinate
       let mut z: f64 = 0.0;
-      for i in 0..2 {
+      for i in 0..3 {
         z += triangle[i].z * bc_screen[i];
       }
 
